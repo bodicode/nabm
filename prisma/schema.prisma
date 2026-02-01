@@ -13,6 +13,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+  COURT_MANAGER
+}
+
+enum TeamRole {
+  CAPTAIN
+  MANAGER
+  MEMBER
+  SUB
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -20,6 +33,7 @@ model User {
   password  String?
   googleId  String?  @unique
   name      String?
+  role      Role     @default(USER)
   skillLevel Int?      @default(1)
   location  String?
   position  String?
@@ -33,7 +47,6 @@ model User {
   matchesHosted Match[] @relation("MatchHost")
   matchesJoined MatchPlayer[]
 }
-
 
 model Court {
   id          String   @id @default(uuid())
@@ -68,7 +81,8 @@ model TeamMember {
   user      User     @relation(fields: [userId], references: [id])
   teamId    String
   team      Team     @relation(fields: [teamId], references: [id])
-  status    String   @default("PENDING")
+  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  role      TeamRole @default(MEMBER)
   createdAt DateTime @default(now())
 }
 
