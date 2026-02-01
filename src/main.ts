@@ -5,7 +5,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = new DocumentBuilder()
-    .setTitle('NABM Basketball API')
+    .setTitle('NABM Basketball API (Live)')
     .setDescription('The API description for Basketball Booking Platform')
     .setVersion('1.0')
     .addBearerAuth()
