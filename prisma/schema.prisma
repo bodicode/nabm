@@ -16,14 +16,23 @@ datasource db {
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
+  phoneNumber String? @unique
   password  String
   name      String?
-  skillLevel String?
+  skillLevel Int?      @default(1)
+  location  String?
   position  String?
   avatar    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  teamsOwned Team[] @relation("TeamCaptain")
+  memberships TeamMember[]
+  courtsOwned Court[]
+  bookings    Booking[]
+  matchesHosted Match[] @relation("MatchHost")
+  matchesJoined MatchPlayer[]
 }
+
 
 model Court {
   id          String   @id @default(uuid())
@@ -32,6 +41,75 @@ model Court {
   pricePerHour Decimal
   description String?
   images      String[]
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id])
+  bookings    Booking[]
+  matches     Match[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Team {
+  id          String       @id @default(uuid())
+  name        String
+  level       String?
+  description String?
+  captainId   String
+  captain     User         @relation("TeamCaptain", fields: [captainId], references: [id])
+  members     TeamMember[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model TeamMember {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id])
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+}
+
+model Match {
+  id           String        @id @default(uuid())
+  type         String        // 3v3, 5v5
+  startTime    DateTime
+  endTime      DateTime
+  level        String?       // Beginner, Intermediate
+  missingSlots Int           @default(0)
+  description  String?
+  status       String        @default("OPEN") // OPEN, CLOSED
+  hostId       String
+  host         User          @relation("MatchHost", fields: [hostId], references: [id])
+  courtId      String
+  court        Court         @relation(fields: [courtId], references: [id])
+  players      MatchPlayer[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model MatchPlayer {
+  id        String   @id @default(uuid())
+  matchId   String
+  match     Match    @relation(fields: [matchId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  joinedAt  DateTime @default(now())
+
+  @@unique([matchId, userId])
+}
+
+model Booking {
+  id          String   @id @default(uuid())
+  courtId     String
+  court       Court    @relation(fields: [courtId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  startTime   DateTime
+  endTime     DateTime
+  totalPrice  Decimal
+  status      String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED, COMPLETED
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

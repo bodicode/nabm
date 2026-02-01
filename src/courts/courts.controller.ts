@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
 import { CourtsService } from './courts.service';
 import { CreateCourtDto } from './dto/create-court.dto';
 import { UpdateCourtDto } from './dto/update-court.dto';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('courts')
 @Controller('courts')
@@ -10,9 +11,11 @@ export class CourtsController {
   constructor(private readonly courtsService: CourtsService) { }
 
   @Post()
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new court' })
-  create(@Body() createCourtDto: CreateCourtDto) {
-    return this.courtsService.create(createCourtDto);
+  create(@Request() req, @Body() createCourtDto: CreateCourtDto) {
+    return this.courtsService.create(createCourtDto, req.user.id);
   }
 
   @Get()

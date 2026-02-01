@@ -7,8 +7,13 @@ import { PrismaService } from '../prisma/prisma.service';
 export class CourtsService {
   constructor(private prisma: PrismaService) { }
 
-  create(createCourtDto: CreateCourtDto) {
-    return this.prisma.court.create({ data: createCourtDto });
+  create(createCourtDto: CreateCourtDto, ownerId: string) {
+    return this.prisma.court.create({
+      data: {
+        ...createCourtDto,
+        ownerId,
+      },
+    });
   }
 
   findAll() {
