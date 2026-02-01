@@ -17,7 +17,8 @@ model User {
   id        String   @id @default(uuid())
   email     String   @unique
   phoneNumber String? @unique
-  password  String
+  password  String?
+  googleId  String?  @unique
   name      String?
   skillLevel Int?      @default(1)
   location  String?
