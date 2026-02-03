@@ -17,6 +17,14 @@ export class UsersController {
         return this.usersService.create(createUserDto);
     }
 
+    @Get('me')
+    @UseGuards(AuthGuard('jwt'))
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get current user profile' })
+    getMe(@Request() req) {
+        return this.usersService.findById(req.user.id);
+    }
+
     @Get()
     @ApiBearerAuth()
     @UseGuards(AuthGuard('jwt'))
