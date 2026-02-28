@@ -8,9 +8,10 @@ import { CourtsModule } from './courts/courts.module';
 import { TeamsModule } from './teams/teams.module';
 import { BookingsModule } from './bookings/bookings.module';
 import { MatchesModule } from './matches/matches.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuthModule, CourtsModule, TeamsModule, BookingsModule, MatchesModule],
+  imports: [PrismaModule, UsersModule, AuthModule, CourtsModule, TeamsModule, BookingsModule, MatchesModule, CloudinaryModule],
   controllers: [AppController],
   providers: [AppService],
 })

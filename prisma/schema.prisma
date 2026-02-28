@@ -27,40 +27,77 @@ enum TeamRole {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  phoneNumber String? @unique
-  password  String?
-  googleId  String?  @unique
-  name      String?
-  role      Role     @default(USER)
-  skillLevel Int?      @default(1)
-  location  String?
-  position  String?
-  avatar    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  teamsOwned Team[] @relation("TeamCaptain")
-  memberships TeamMember[]
-  courtsOwned Court[]
-  bookings    Booking[]
-  matchesHosted Match[] @relation("MatchHost")
+  id            String        @id @default(uuid())
+  email         String        @unique
+  phoneNumber   String?       @unique
+  password      String?
+  googleId      String?       @unique
+  name          String?
+  role          Role          @default(USER)
+  skillLevel    Int?          @default(1)
+  location      String?
+  position      String?
+  avatar        String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  teamsOwned    Team[]        @relation("TeamCaptain")
+  memberships   TeamMember[]
+  courtsOwned   Court[]
+  bookings      Booking[]
+  matchesHosted Match[]       @relation("MatchHost")
   matchesJoined MatchPlayer[]
 }
 
 model Court {
-  id          String   @id @default(uuid())
-  name        String
-  address     String
-  pricePerHour Decimal
+  id   String @id @default(uuid())
+  name String
+
+  // Sport & Court Info
+  sportType      String  @default("Basketball")
+  courtType      String? // Full court, Half court, etc.
+  isIndoor       Boolean @default(false)
+  floorType      String? // Wooden, Concrete, PU, Rubber...
+  numberOfCourts Int     @default(1)
+  dimensions     String?
+
+  // Address & Location
+  address   String
+  latitude  Float?
+  longitude Float?
+  district  String?
+
+  // Contact Info
+  managerName String?
+  phoneNumber String?
+  email       String?
+  socialLink  String? // Zalo, Facebook
+
+  // Pricing & Policies
+  pricePerHour       Decimal
+  deposit            String?
+  cancellationPolicy String?
+  paymentMethods     String[] // CASH, BANK_TRANSFER, MOMO, etc.
+
+  // Rating
+  rating Float @default(0.0)
+
+  // Facilities
+
+  facilities String[] // Lighting, Roof, Water, Locker, Toilet...
+
+  // Media
   description String?
   images      String[]
-  ownerId     String
-  owner       User     @relation(fields: [ownerId], references: [id])
-  bookings    Booking[]
-  matches     Match[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  video       String?
+
+  // Relations
+  ownerId  String
+  owner    User      @relation(fields: [ownerId], references: [id])
+  bookings Booking[]
+  matches  Match[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Team {
@@ -88,10 +125,10 @@ model TeamMember {
 
 model Match {
   id           String        @id @default(uuid())
-  type         String        // 3v3, 5v5
+  type         String // 3v3, 5v5
   startTime    DateTime
   endTime      DateTime
-  level        String?       // Beginner, Intermediate
+  level        String? // Beginner, Intermediate
   missingSlots Int           @default(0)
   description  String?
   status       String        @default("OPEN") // OPEN, CLOSED
@@ -105,26 +142,26 @@ model Match {
 }
 
 model MatchPlayer {
-  id        String   @id @default(uuid())
-  matchId   String
-  match     Match    @relation(fields: [matchId], references: [id])
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  joinedAt  DateTime @default(now())
+  id       String   @id @default(uuid())
+  matchId  String
+  match    Match    @relation(fields: [matchId], references: [id])
+  userId   String
+  user     User     @relation(fields: [userId], references: [id])
+  joinedAt DateTime @default(now())
 
   @@unique([matchId, userId])
 }
 
 model Booking {
-  id          String   @id @default(uuid())
-  courtId     String
-  court       Court    @relation(fields: [courtId], references: [id])
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  startTime   DateTime
-  endTime     DateTime
-  totalPrice  Decimal
-  status      String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED, COMPLETED
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(uuid())
+  courtId    String
+  court      Court    @relation(fields: [courtId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  startTime  DateTime
+  endTime    DateTime
+  totalPrice Decimal
+  status     String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED, COMPLETED
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

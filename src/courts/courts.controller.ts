@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, UseInterceptors, UploadedFiles } from '@nestjs/common';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { CourtsService } from './courts.service';
 import { CreateCourtDto } from './dto/create-court.dto';
 import { UpdateCourtDto } from './dto/update-court.dto';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('courts')
@@ -14,8 +15,17 @@ export class CourtsController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new court' })
-  create(@Request() req, @Body() createCourtDto: CreateCourtDto) {
-    return this.courtsService.create(createCourtDto, req.user.id);
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'images', maxCount: 10 },
+    { name: 'video', maxCount: 1 },
+  ]))
+  create(
+    @Request() req,
+    @Body() createCourtDto: CreateCourtDto,
+    @UploadedFiles() files: { images?: Express.Multer.File[], video?: Express.Multer.File[] }
+  ) {
+    return this.courtsService.create(createCourtDto, req.user.id, files);
   }
 
   @Get()
