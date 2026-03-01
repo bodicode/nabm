@@ -12,27 +12,27 @@ export class CourtsService {
   ) { }
 
   async create(createCourtDto: CreateCourtDto, ownerId: string, files: { images?: Express.Multer.File[], video?: Express.Multer.File[] }) {
-    return this.prisma.$transaction(async (tx) => {
-      // 1. Upload media files if they exist
-      const imageUrls: string[] = [];
-      let videoUrl: string | null = null;
+    // 1. Upload media files if they exist FIRST, outside of the database transaction!
+    const imageUrls: string[] = [];
+    let videoUrl: string | null = null;
 
-      try {
-        if (files?.images && files.images.length > 0) {
-          const imagePromises = files.images.map(file => this.cloudinary.uploadFile(file, 'nabm/courts/images'));
-          const imageResults = await Promise.all(imagePromises);
-          imageResults.forEach(result => imageUrls.push(result.secure_url));
-        }
-
-        if (files?.video && files.video.length > 0) {
-          const videoResult = await this.cloudinary.uploadFile(files.video[0], 'nabm/courts/videos');
-          videoUrl = videoResult.secure_url;
-        }
-      } catch (error) {
-        throw new BadRequestException('Failed to upload media files to Cloudinary');
+    try {
+      if (files?.images && files.images.length > 0) {
+        const imagePromises = files.images.map(file => this.cloudinary.uploadFile(file, 'nabm/courts/images'));
+        const imageResults = await Promise.all(imagePromises);
+        imageResults.forEach(result => imageUrls.push(result.secure_url));
       }
 
-      // 2. Create the court
+      if (files?.video && files.video.length > 0) {
+        const videoResult = await this.cloudinary.uploadFile(files.video[0], 'nabm/courts/videos');
+        videoUrl = videoResult.secure_url;
+      }
+    } catch (error) {
+      throw new BadRequestException('Failed to upload media files to Cloudinary');
+    }
+
+    // 2. Execute Database Operations inside a short-lived transaction
+    return this.prisma.$transaction(async (tx) => {
       const courtData = {
         ...createCourtDto,
         ownerId,
@@ -41,11 +41,12 @@ export class CourtsService {
       if (imageUrls.length > 0) courtData.images = imageUrls;
       if (videoUrl) courtData.video = videoUrl;
 
+      // Create the court
       const court = await tx.court.create({
         data: courtData,
       });
 
-      // 3. Upgrade the user's role to COURT_MANAGER
+      // Upgrade the user's role to COURT_MANAGER
       await tx.user.update({
         where: { id: ownerId },
         data: { role: 'COURT_MANAGER' },
